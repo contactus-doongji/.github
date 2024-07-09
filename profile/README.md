@@ -1,4 +1,4 @@
-# Doongji 플랫폼 프로젝트
+# Doongji 프로젝트
 
 ## 목차
 
@@ -8,7 +8,7 @@
   - [3.1. Doongji1](#31-doongji1)
   - [3.2. contactus-doongji](#32-contactus-doongji)
 - [4. 개발 환경](#4-개발-환경)
-- [5. 데이터베이스 설계](#5-데이터베이스-설계)
+- [5. 데이터베이스 관련](#5-데이터베이스-관련)
 - [6. 배포 및 운영](#6-배포-및-운영)
 - [7. 운영 서버 크론 작업](#7-운영-서버-크론-작업)
 - [8. 인프라](#8-인프라)
@@ -73,10 +73,41 @@
     - SpringBoot: 3.1.4
     - MySQL: 8.0.37
 
-## 5. 데이터베이스 설계
+## 5. 데이터베이스 관련
+### ERD
+  - 현재: [https://www.erdcloud.com/d/T5xXwbgoW4Lca2W6f](https://www.erdcloud.com/d/T5xXwbgoW4Lca2W6f)
+  - 재구성: [https://www.erdcloud.com/d/bs68hTNCQEN4GAY7k](https://www.erdcloud.com/d/bs68hTNCQEN4GAY7k)
+### Ver 2.0 관련
+### 트리거
 
-- 현재: [https://www.erdcloud.com/d/T5xXwbgoW4Lca2W6f](https://www.erdcloud.com/d/T5xXwbgoW4Lca2W6f)
-- 재구성: [https://www.erdcloud.com/d/bs68hTNCQEN4GAY7k](https://www.erdcloud.com/d/bs68hTNCQEN4GAY7k)
+| 트리거 이름                        | 실행 시점              | 용도                                          |
+|----------------------------------|---------------------|---------------------------------------------|
+| `bldutilcal_create`              | after insert        | 건물 생성 후 건물의 공과금 개체 생성                    |
+| `lmcontract_update`              | before update       | 임차 계약 수정 전 임차 계약 히스토리 생성                |
+| `pmcontract_update`              | before update       | 건물 계약 수정 전 건물 계약 히스토리 생성                |
+| `trg_issue_cmt_insert_notification` | after insert        | 이슈의 코멘트 생성 후 소통창구 댓글 생성 알림 <br/>(`prc_notification` 프로시저 호출) |
+| `trg_issue_insert_notification`  | after insert        | 이슈 생성 후 이슈 생성 알림 <br/>(`prc_notification` 프로시저 호출)      |
+| `trg_issue_update_notification`  | before update       | 이슈 수정 전 이슈 수정 알림 <br/>(`prc_notification` 프로시저 호출)      |
+| `trg_lmcontract_insert_notification`| after insert        | 임차 계약 생성 후 임차 계약 생성 알림 <br/>(`prc_notification` 프로시저 호출)   |
+| `trg_paydate_notification`       | before update       | 건물관리비 항목 수정 전 건물관리비 납입 알림 <br/>(`prc_notification` 프로시저 호출)|
+| `lmutilcal_update`               | after update        | 임차사 공과금 정보 수정 후 공과금 개체 수정    |
+| `payment_utilusage_updateusage`  | before update       | 공과금 개체 수정 전 공과금 개체 수정                     |
+
+### 프로시저
+
+| 프로시저 이름                      | 용도                                           |
+|----------------------------------|---------------------------------------------|
+| `prc_add_noticonfirm`            | 소통창구 알림 개체 생성                               |
+| `prc_auto_create_fmissue`        | 자동 생성 설정한 이슈를 생성                            |
+| `prc_directly_create_fmissue`    | 사용 안함                                        |
+| `prc_log_msg`                    | 사용 안함                                        |
+| `prc_notification`               | 소통창구 알림 정보 생성 및 소통창구 알림 개체 생성                 |
+
+### 이벤트 스케줄러
+
+| 이벤트 스케줄러 이름                | 실행 프로시저                  | 주기                |
+|----------------------------------|-----------------------------|---------------------|
+| `auto_create_fmissue`            | `prc_auto_create_fmissue`   | 매일 오전 2시         |
 
 ## 6. 배포 및 운영
 
@@ -84,6 +115,8 @@
 - **배포 프로세스:**
     1. **젠킨스 접속 정보:**
         - **URL:** [https://jenkins.doongji.co.kr](https://jenkins.doongji.co.kr/)
+        - **ID:** admin
+        - **PW:** doongji2024!
     2. **소스코드 리모트에 반영 및 태그 자동 생성:**
         - **GitHub Action을 이용한 태그 자동 생성**
         - **태그 자동 생성 조건:**
